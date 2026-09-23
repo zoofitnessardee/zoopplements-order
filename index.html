@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>ZOOPPLEMENTS ORDER v1</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="shell">
+  <header><img src="zoopplements-logo.jpg" alt="ZOOPPLEMENTS BAR logo"></header>
+
+  <section id="welcome" class="screen active">
+    <p class="eyebrow">SELF-SERVICE ORDERING</p>
+    <h1>Protein shakes,<br>made your way.</h1>
+    <p class="lead">Build your shake, place your order, then pay at the bar.</p>
+    <button class="primary" onclick="go('flavour')">ORDER A PROTEIN SHAKE</button>
+  </section>
+
+  <section id="flavour" class="screen">
+    <button class="back" onclick="go('welcome')">← Back</button>
+    <p class="step">STEP 1 OF 5</p><h2>Choose your flavour</h2>
+    <div class="grid">
+      <button onclick="pickFlavour('Chocolate')">Chocolate</button>
+      <button onclick="pickFlavour('Vanilla')">Vanilla</button>
+      <button onclick="pickFlavour('Strawberry')">Strawberry</button>
+      <button onclick="pickFlavour('Banana')">Banana</button>
+      <button onclick="pickFlavour('Cookies & Cream')">Cookies &amp; Cream</button>
+    </div>
+  </section>
+
+  <section id="base" class="screen">
+    <button class="back" onclick="go('flavour')">← Back</button>
+    <p class="step">STEP 2 OF 5</p><h2>Water or milk?</h2>
+    <div class="choice-stack">
+      <button onclick="pickBase('Water',3.50)"><b>WITH WATER</b><span>€3.50</span></button>
+      <button onclick="pickBase('Milk',4.00)"><b>WITH MILK</b><span>€4.00</span></button>
+    </div>
+  </section>
+
+  <section id="creatine" class="screen">
+    <button class="back" onclick="go('base')">← Back</button>
+    <p class="step">STEP 3 OF 5</p><h2>Add creatine?</h2>
+    <div class="choice-stack">
+      <button onclick="pickCreatine(true)"><b>YES, ADD CREATINE</b><span>+ €0.50</span></button>
+      <button onclick="pickCreatine(false)"><b>NO THANKS</b><span>No extra charge</span></button>
+    </div>
+  </section>
+
+  <section id="quantity" class="screen">
+    <button class="back" onclick="go('creatine')">← Back</button>
+    <p class="step">STEP 4 OF 5</p><h2>How many?</h2>
+    <div class="qty">
+      <button onclick="changeQty(-1)">−</button><strong id="qty">1</strong><button onclick="changeQty(1)">+</button>
+    </div>
+    <button class="primary" onclick="go('name')">CONTINUE</button>
+  </section>
+
+  <section id="name" class="screen">
+    <button class="back" onclick="go('quantity')">← Back</button>
+    <p class="step">STEP 5 OF 5</p><h2>What's your name?</h2>
+    <p class="lead small">We'll use this to call your order.</p>
+    <input id="customerName" maxlength="40" autocomplete="off" placeholder="Enter your name">
+    <button class="primary" onclick="review()">REVIEW ORDER</button>
+  </section>
+
+  <section id="review" class="screen">
+    <button class="back" onclick="go('name')">← Back</button>
+    <p class="step">CHECK YOUR ORDER</p><h2>Ready to order?</h2>
+    <div id="reviewCard" class="order-card"></div>
+    <p class="pay-note">Payment is made at the bar.</p>
+    <button class="primary" id="placeBtn" onclick="placeOrder()">PLACE ORDER</button>
+  </section>
+
+  <section id="confirmed" class="screen">
+    <p class="eyebrow">ORDER PLACED</p>
+    <div class="tick">✓</div>
+    <h2>Thanks, <span id="confirmedName"></span>!</h2>
+    <p class="lead">Your order has been sent to the ZOOPPLEMENTS bar.</p>
+    <div id="orderNumber" class="order-number"></div>
+    <p class="pay-note">Please pay at the bar when collecting your order.</p>
+    <button class="primary" onclick="resetOrder()">DONE</button>
+  </section>
+
+  <footer>ZOOPPLEMENTS ORDER v1 <span>•</span> powered by <b>poppad</b></footer>
+</main>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
