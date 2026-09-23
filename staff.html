@@ -1,9 +1,99 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ZOOPPLEMENTS Staff Orders</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#111;color:#fff;font-family:Arial,sans-serif;padding:18px}header{position:sticky;top:0;background:#111;padding:8px 0 16px;border-bottom:2px solid #fff}h1{font-size:25px;margin:0}.sub{color:#bbb;margin:6px 0 0}.notice{margin-top:25px;border:2px dashed #777;border-radius:12px;padding:22px;color:#ddd;line-height:1.5}.order{background:#fff;color:#111;border-radius:12px;padding:18px;margin:16px 0}.order h2{margin:0 0 10px;font-size:27px}.complete{width:100%;border:0;border-radius:8px;background:#111;color:#fff;padding:18px;font-size:18px;font-weight:900}
-</style></head>
-<body><header><h1>ZOOPPLEMENTS • STAFF ORDERS</h1><p class="sub">Phone view — v1</p></header>
-<div class="notice"><b>Staff screen prepared.</b><br><br>The live order backend is deliberately not connected yet. Once connected, new tablet orders will appear here and staff will be able to mark them complete.</div>
-</body></html>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif}
+body{background:#0b0b0b;color:#fff;padding:14px}
+header{position:sticky;top:0;z-index:5;background:#0b0b0b;padding:8px 0 14px;border-bottom:2px solid #fff}
+h1{font-size:22px;margin:0;letter-spacing:.5px}.sub{margin:6px 0 0;color:#aaa;font-size:13px}
+.status{margin:14px 0;padding:12px;border:1px solid #555;border-radius:9px;color:#ddd;font-size:14px}
+.empty{text-align:center;color:#aaa;padding:60px 10px;font-size:18px}
+.order{background:#fff;color:#111;border-radius:12px;padding:18px;margin:14px 0;box-shadow:0 3px 16px rgba(0,0,0,.25)}
+.order-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:12px}
+.order h2{font-size:27px;margin:0}.name{font-size:19px;font-weight:900;text-transform:uppercase}
+.time{font-size:13px;color:#666;text-align:right}.details{font-size:18px;line-height:1.55}
+.total{font-size:23px;font-weight:900;margin-top:12px}.complete{width:100%;border:0;border-radius:8px;background:#111;color:#fff;padding:18px;margin-top:16px;font-size:18px;font-weight:900;cursor:pointer}
+.complete:disabled{opacity:.5}.refresh{border:1px solid #fff;background:#111;color:#fff;border-radius:7px;padding:8px 12px;font-weight:800;float:right}
+</style>
+</head>
+<body>
+<header>
+  <button class="refresh" onclick="loadOrders()">REFRESH</button>
+  <h1>ZOOPPLEMENTS • ORDERS</h1>
+  <p class="sub">Staff phone • active orders</p>
+</header>
+<div id="status" class="status">Connecting to order system…</div>
+<main id="orders"></main>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbzG0y52eowFqGEJoIVXg2UMFjzSRY2Ruc40aKEX9D_PQczkzMMJ_RbZn9CTrc895NXh/exec";
+let loading = false;
+
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function euro(n){ return "€" + Number(n).toFixed(2); }
+function when(iso){
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+}
+async function loadOrders(){
+  if(loading) return;
+  loading=true;
+  const status=document.getElementById("status");
+  try{
+    const r=await fetch(API+"?action=orders&_="+Date.now(), {cache:"no-store"});
+    const data=await r.json();
+    if(!data.ok) throw new Error("Could not load orders");
+    render(data.orders || []);
+    status.textContent="LIVE • Last checked "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  }catch(e){
+    status.textContent="OFFLINE / CONNECTION ERROR • Tap REFRESH";
+  }finally{loading=false}
+}
+function render(orders){
+  const box=document.getElementById("orders");
+  if(!orders.length){
+    box.innerHTML='<div class="empty">No active orders.</div>';
+    return;
+  }
+  box.innerHTML=orders.map(o=>`
+    <article class="order">
+      <div class="order-top">
+        <div><h2>ORDER #${esc(o.orderNumber)}</h2><div class="name">${esc(o.customerName)}</div></div>
+        <div class="time">${esc(when(o.createdAt))}</div>
+      </div>
+      <div class="details">
+        <b>${esc(o.quantity)} × ${esc(o.flavour)} Protein Shake</b><br>
+        ${esc(o.base)}<br>
+        ${o.creatine ? "+ Creatine" : "No creatine"}
+        <div class="total">TOTAL ${euro(o.total)}</div>
+      </div>
+      <button class="complete" onclick="completeOrder('${esc(o.id)}',this)">COMPLETE ORDER</button>
+    </article>`).join("");
+}
+async function completeOrder(id,btn){
+  if(!confirm("Mark this order complete?")) return;
+  btn.disabled=true; btn.textContent="COMPLETING…";
+  try{
+    const r=await fetch(API,{
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({action:"completeOrder",orderId:id})
+    });
+    const data=await r.json();
+    if(!data.ok) throw new Error(data.error||"Could not complete order");
+    await loadOrders();
+  }catch(e){
+    alert("Could not complete the order. Please try again.");
+    btn.disabled=false; btn.textContent="COMPLETE ORDER";
+  }
+}
+loadOrders();
+setInterval(loadOrders,5000);
+</script>
+</body>
+</html>

@@ -42,3 +42,13 @@ CONNECTED BUILD
 ===============
 Customer tablet is configured for the live ZOOPPLEMENTS Apps Script backend.
 Next: host on HTTPS and place one test order. Staff phone live queue is not connected yet.
+
+
+STAFF PHONE BUILD
+=================
+staff.html is now connected to the live backend.
+- Shows ACTIVE orders as phone-friendly cards.
+- Automatically checks for new orders every 5 seconds.
+- Manual REFRESH button included.
+- COMPLETE ORDER marks an order complete and removes it from the active queue.
+- Existing customer tablet ordering files are retained.
